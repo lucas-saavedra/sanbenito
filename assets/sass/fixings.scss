@@ -1,0 +1,9 @@
+// Fixing Fullcontainer height
+
+.fullcontainer{
+  height: calc(100vh - 6rem);
+}
+
+.hero.is-fullheight-with-navbar {
+  min-height: calc(100vh - 6rem);
+}

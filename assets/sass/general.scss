@@ -1,0 +1,32 @@
+// Configuración Inicial
+@charset "utf-8";
+
+
+// Importación de Fuentes de Google 
+@import url('https://fonts.googleapis.com/css?family=Nunito:400,700');
+
+// Seteo de Colores de Marca
+$azul: #3399CC;
+$celeste: #7BCBE2;
+$amarillo: #FBD300;
+$verde: #7AA228;
+$marron: #565f4f;
+$gris: #4D4D4D;
+$beige-light: #D0D1CD;
+$beige-lighter: #EFF0EB;
+
+// Seteo de Variables
+$grey-dark: $marron;
+$grey-light: $beige-light;
+$primary: $verde;
+$link: $azul;
+$success: $azul;
+$background: #fff;
+$family-sans-serif: 'Nunito', sans-serif;
+
+// Importación de Bulma
+@import 'bulma';
+
+// Importación Estilos por Areas
+@import './fixings.scss';
+@import './navigation.scss';
