@@ -27,7 +27,7 @@
               </NuxtLink>
               <a href="http://181.228.27.231/ingresospublicos/ingresospublicos.aspx" class="button is-light is-outlined" target="_blank">
                   <span class="icon"><font-awesome-icon :icon="['fas', 'calendar-minus']"/></span>
-                  <strong>Muni Online</strong>
+                  <strong>Gestión Tributaria</strong>
               </a>
           </div>
         </div>
