@@ -113,6 +113,9 @@
             <a href="http://181.228.27.231/ingresospublicos/ingresospublicos.aspx" class="navbar-item" target="_blank">
               <span>Gestión Tributaria</span>
             </a>
+            <a href="http://181.228.27.231/personal/personal.aspx" class="navbar-item" target="_blank">
+              <span>Trámites de Personal</span>
+            </a>
             <a href="https://trabajoenred.argentina.gob.ar/public/listados/?org=92082037273e016c62c9c6f0015c69be" class="navbar-item" target="_blank">
               <span>Vacantes Laborales</span>
             </a>
