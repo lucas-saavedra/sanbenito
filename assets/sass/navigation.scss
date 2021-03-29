@@ -23,8 +23,15 @@
 .navbar{
   border-bottom: 2px solid #dbdbdb;
 }
-
-
+//El dropdown se quedaba colgado, con esto se soluciona
+@media screen and (min-width: 1025px) {
+  .navbar-item.is-hoverable:hover .navbar-dropdown {
+      display: block !important;
+  }
+  .navbar-item.is-hoverable:focus-within .navbar-dropdown {
+      display: none;
+  }
+}
 .navbar,.navbar-brand,.navbar-burger,.navbar-toggle{
     height: 5rem;
 }
