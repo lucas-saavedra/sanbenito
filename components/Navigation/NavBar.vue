@@ -45,10 +45,10 @@
               <span class="icon"><font-awesome-icon :icon="['fas', 'calculator']"/></span>
               <span>Contabilidad</span>
             </a>
-              <!-- <NuxtLink to="/transparencia/licitaciones" class="navbar-item">
+               <NuxtLink to="/transparencia/licitaciones" class="navbar-item">
               <span class="icon"><font-awesome-icon :icon="['fas', 'copy']"/></span>
               <span>Licitaciones</span>
-              </NuxtLink> -->
+              </NuxtLink> 
           </div>
         </div>
         <div class="navbar-item has-dropdown is-hoverable">
