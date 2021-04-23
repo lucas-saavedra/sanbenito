@@ -53,12 +53,18 @@ export default {
     '@nuxtjs/axios',
     // https://go.nuxtjs.dev/pwa
     '@nuxtjs/pwa',
-    ['nuxt-buefy', { css: false, materialDesignIcons: false }],
+
   ],
 
   // Axios module configuration (https://go.nuxtjs.dev/config-axios)
-  axios: {},
-
+  axios: {
+    proxy: true,
+    host: 'localhost',
+    prefix: '/api/v1/'
+  },
+  proxy: {
+    '/api/v1/': 'http://localhost:3333/'
+  },
 
   // Build Configuration (https://go.nuxtjs.dev/config-build)
   build: {
