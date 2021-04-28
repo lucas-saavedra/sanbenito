@@ -23,44 +23,63 @@
     <section class="hero">
       <div class="hero-body">
         <div class="container">
-          <!-- <tabs></tabs> -->
-
-          <!--  <b-tabs type="is-toggle" expanded>
-            <b-tab-item label="Vigentes"> -->
-
-          <button @click="visible = true">Saludar</button>
-
-          <div v-show="visible">
+           <section>
+          <b-tabs position="is-centered" v-model="activeTab">
+            <b-tab-item label="Licitaciones">
+              
+              <div class="select is-primary is-normal">
+                <select v-model="estado" v-on:change="fetch_estado(estado)">
+                  <option value="vigente" autofocus>Vigente</option>
+                  <option value="en_evaluacion">En evaluación</option>
+                  <option value="adjudicada">Adjudicada</option>
+                </select>
+              </div>
               <table class="table is-bordered is-centered">
-            <thead>
-              <tr>
-                <th><p>Nº Licitacion</p></th>
-                <th><p>Tipo</p></th>
-                <th><p>Titulo</p></th>
-                <th>Ver</th>
-              </tr>
-            </thead>
-            <tbody v-for="licitacion in licitaciones" v-bind:key="licitacion.id">
-              <tr>
-                <td>
-                  <b-tag type="is-primary">
-                    {{ licitacion.licitacion_n }} / {{ licitacion.fecha }}
-                  </b-tag>
-                </td>
-                <td>
-                  <p>{{ licitacion.tipo }}</p>
-                </td>
-                <td id="titulo">{{ licitacion.titulo }}</td>
-                <td><b-button icon-left="eye"></b-button></td>
-              </tr>
-            </tbody>
-          </table>
-          </div>
-        
-         <!--    </b-tab-item>
-            <b-tab-item label="Adjudicadas"></b-tab-item>
-            <b-tab-item label="En Evaluacion"></b-tab-item>
-          </b-tabs> -->
+                <thead>
+                  <tr>
+                    <th><p>Nº Licitacion</p></th>
+                    <th><p>Tipo</p></th>
+                    <th><p>Titulo</p></th>
+                    <th>Ver</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <Licits
+                    v-for="licitacion of licitaciones"
+                    v-bind:key="licitacion.id"
+                    v-bind:licitacion="licitacion"
+                  />
+                </tbody>
+              </table>
+            </b-tab-item>
+            <b-tab-item label="Concursos">
+              <div class="select is-info is-normal">
+                <select v-model="estado" v-on:change="fetch_estado(estado)">
+                  <option selected value="vigente">Vigente</option>
+                  <option value="en_evaluacion">En evaluación</option>
+                  <option value="adjudicada">Adjudicada</option>
+                </select>
+              </div>
+              <table class="table is-bordered is-centered">
+                <thead>
+                  <tr>
+                    <th><p>Nº Concurso</p></th>
+                    <th><p>Tipo</p></th>
+                    <th><p>Titulo</p></th>
+                    <th>Ver</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <Concurs
+                    v-for="licitacion of licitaciones"
+                    v-bind:key="licitacion.id"
+                    v-bind:licitacion="licitacion"
+                  />
+                </tbody>
+              </table>
+            </b-tab-item>
+          </b-tabs>
+          </section>
         </div>
       </div>
     </section>
@@ -68,18 +87,39 @@
 </template>
 
 <script>
-import axios from "axios";
-import Tabs from "~/components/Tabs.vue";
-
+import Licits from "~/components/Licits.vue";
+import Concurs from "~/components/Concurs.vue";
 export default {
   components: {
-    Tabs
+    Licits,
+    Concurs
   },
   data() {
     return {
-      licitaciones: null,
-      visible: false
+      licitaciones: [],
+      estado: "vigente",
+      activeTab: 0,
     };
+  },
+  created() {
+    this.fetch_estado('vigente');
+  },
+  methods: {
+    async fetch() {
+      const params = {
+        estado: "vigente"
+      };
+      const ip = await this.$axios.$get(
+        "http://localhost:3333/api/v1/licitaciones"
+      );
+      this.licitaciones = ip;
+    },
+    async fetch_estado(estado) {
+      let result = await this.$axios.$get(
+        `http://localhost:3333/api/v1/licitaciones/${estado}`
+      );
+      this.licitaciones = result;
+    }
   },
 
   head() {
@@ -87,43 +127,15 @@ export default {
       title: "San Benito - Licitaciones"
     };
   },
-
-  created() {
-    axios
-      .get(`http://localhost:3333/api/v1/licitaciones/`)
-      .then(licitaciones => {
-        this.licitaciones = licitaciones.data;
-      });
+  search_estado() {
+    this.fetch();
   }
 };
 </script>
 
-<style scoped>
-.card:hover {
-  transition: all 0.2s ease-out;
-  box-shadow: 0px 4px 8px rgba(38, 38, 38, 0.2);
-  border: 1px solid #cccccc;
-  background-color: white;
+<style>
+.select {
+  margin: 20px;
 }
-p {
-  color: #4c5656;
-  margin: 5px;
-  z-index: 1000;
-  transition: color 0.3s ease-out;
-  text-align: center;
-  text-transform: capitalize;
-}
-#titulo {
-  text-transform: lowercase;
-}
-#titulo::first-letter {
-  text-transform: uppercase;
-}
-.card {
-  border: 1px solid #cccccc;
-  margin: 5px;
-}
-.button {
-  margin: auto;
-}
+
 </style>
