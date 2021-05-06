@@ -23,63 +23,53 @@
     <section class="hero">
       <div class="hero-body">
         <div class="container">
-           <section>
-          <b-tabs position="is-centered" v-model="activeTab">
-            <b-tab-item label="Licitaciones">
-              
-              <div class="select is-primary is-normal">
-                <select v-model="estado" v-on:change="fetch_estado(estado)">
-                  <option value="vigente" autofocus>Vigente</option>
-                  <option value="en_evaluacion">En evaluación</option>
-                  <option value="adjudicada">Adjudicada</option>
-                </select>
+          <v-tabs centered>
+            <v-tab @click="tipo = 'licitacion'">
+              Licitaciones
+            </v-tab>
+
+            <v-tab @click="tipo = 'concurso'">
+              Concursos
+            </v-tab>
+
+            <v-tab-item>
+              <Licits></Licits>
+            </v-tab-item>
+
+            <v-tab-item>
+              <Concurs ></Concurs>
+            </v-tab-item>
+          </v-tabs>
+
+          <!--  <div class="modal-card">
+            <div class="field">
+              <label class="label">Password</label>
+              <div class="control">
+                <input
+                  class="input"
+                  type="text"
+                  placeholder="e.g Alex Smith"
+                  v-model="password"
+                />
               </div>
-              <table class="table is-bordered is-centered">
-                <thead>
-                  <tr>
-                    <th><p>Nº Licitacion</p></th>
-                    <th><p>Tipo</p></th>
-                    <th><p>Titulo</p></th>
-                    <th>Ver</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <Licits
-                    v-for="licitacion of licitaciones"
-                    v-bind:key="licitacion.id"
-                    v-bind:licitacion="licitacion"
-                  />
-                </tbody>
-              </table>
-            </b-tab-item>
-            <b-tab-item label="Concursos">
-              <div class="select is-info is-normal">
-                <select v-model="estado" v-on:change="fetch_estado(estado)">
-                  <option selected value="vigente">Vigente</option>
-                  <option value="en_evaluacion">En evaluación</option>
-                  <option value="adjudicada">Adjudicada</option>
-                </select>
+            </div> -->
+
+          <!--  <div class="field">
+              <label class="label">Email</label>
+              <div class="control">
+                <input
+                  class="input"
+                  type="email"
+                  placeholder="e.g. alexsmith@gmail.com"
+                  required
+                  v-model="email"
+                />
               </div>
-              <table class="table is-bordered is-centered">
-                <thead>
-                  <tr>
-                    <th><p>Nº Concurso</p></th>
-                    <th><p>Tipo</p></th>
-                    <th><p>Titulo</p></th>
-                    <th>Ver</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <Concurs
-                    v-for="licitacion of licitaciones"
-                    v-bind:key="licitacion.id"
-                    v-bind:licitacion="licitacion"
-                  />
-                </tbody>
-              </table>
-            </b-tab-item>
-          </b-tabs>
-          </section>
+            </div>
+            <input type="file" ref="file" v-on:change="selectFile()">
+            <button @click="agregar_postulante()">Guardar</button> -->
+
+          <!-- </div> -->
         </div>
       </div>
     </section>
@@ -89,20 +79,33 @@
 <script>
 import Licits from "~/components/Licits.vue";
 import Concurs from "~/components/Concurs.vue";
+import Detalle from "~/components/Detalle.vue";
+import UploadFiles from "~/components/UploadFiles";
+/* import Add_postulante from "~/components/Add_postulante.vue"; */
 export default {
   components: {
     Licits,
-    Concurs
+    Concurs,
+    Detalle,
+    UploadFiles
   },
   data() {
     return {
       licitaciones: [],
       estado: "vigente",
       activeTab: 0,
+      modal: true,
+      tipo: "",
+      postulante: true,
+      condition: true,
+      currentLicitacion: [],
+      password: "",
+      email: "",
+      selectedFiles: null
     };
   },
   created() {
-    this.fetch_estado('vigente');
+    this.fetch_estado("vigente");
   },
   methods: {
     async fetch() {
@@ -119,9 +122,35 @@ export default {
         `http://localhost:3333/api/v1/licitaciones/${estado}`
       );
       this.licitaciones = result;
-    }
-  },
+    },
+    showModal(id) {
+      this.fetchOne(id);
+    },
+    async fetchOne(id) {
+      let result = await this.$axios.$get(
+        `http://localhost:3333/api/v1/licitaciones/id/${id}`
+      );
+      this.currentLicitacion = result;
+      this.modal = true;
+      console.log(this.currentLicitacion, "L");
+    },
 
+    selectFile() {
+      this.selectedFiles = this.$refs.file.files;
+    }
+    /* async agregar_postulante() {
+    let formData = new FormData();
+    this.currentFile = this.selectedFiles.item(0);
+    formData.append("file", this.currentFile);
+    formData.append( 'email': this.email);
+    formData.append( 'password': this.password);
+    this.currentFile = this.selectedFiles.item(0);
+    let response = await this.$axios.post("http://localhost:3333/api/v1/users"
+    {headers:{ 'Content-Type':'multipart/form-data',}}
+    )
+    console.log(response.data);
+  } */
+  },
   head() {
     return {
       title: "San Benito - Licitaciones"
@@ -133,9 +162,12 @@ export default {
 };
 </script>
 
-<style>
-.select {
+<style lang="css" scoped>
+.card {
+  border: 1px solid #cccccc;
+  margin: 5px;
+}
+.content {
   margin: 20px;
 }
-
 </style>
