@@ -12,7 +12,6 @@
         <thead>
           <tr>
             <th><p>Nº Concurso</p></th>
-
             <th><p>Titulo</p></th>
             <th>Ver</th>
           </tr>
@@ -21,7 +20,7 @@
           <tr v-for="concurso in concursos" :key="concurso.id">
             <td>
               <span class="tag is-info is-medium"
-                >{{ concurso.concurso_n }} / {{ concurso.anio }}</span
+                >{{ concurso.numero }} / {{ concurso.anio }}</span
               >
             </td>
 
@@ -36,16 +35,15 @@
           </tr>
         </tbody>
       </table>
+
       <div class="card" v-else>
         <div class="card-content">
           <div>
             <span class="tag is-black is-medium"
-              >Concurso Nº: {{ currentConcurso.concurso_n }} /
+              >Concurso Nº: {{ currentConcurso.numero }} /
               {{ currentConcurso.anio }}
             </span>
-            <!-- <span class="tag is-info is-medium">
-              Tipo: {{ currentConcurso.tipo }}</span
-            > -->
+
             <span class="tag is-info is-medium">
               Estado: {{ currentConcurso.estado }}</span
             >
@@ -62,34 +60,45 @@
               {{ currentConcurso.entrega_sobres }}
             </p>
 
-            <p >
+            <p>
               <strong>Presupuesto Oficial: $</strong>
               {{ currentConcurso.presup_oficial }}
             </p>
 
-          <table class="table is-bordered">
-        <thead>
-          <tr>
-            <th><p>Adjudicatorio</p></th>
-            <th><p>Importe</p></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="currentConcursoAdj in currentConcursosAdj"
-              :key="currentConcursoAdj.id">
-            <td>
-             <p>  {{ currentConcursoAdj.nombre_apellido }}</p>
-            </td>
-            <td>
-               <p>$ {{ currentConcursoAdj.importe }}</p>
-            </td>
-            </tr>
-            </tbody>
-
+            <table class="table is-bordered">
+              <thead>
+                <tr>
+                  <th><p>Adjudicatorio</p></th>
+                  <th><p>Importe</p></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="currentConcursoAdj in currentConcursosAdj"
+                  :key="currentConcursoAdj.id"
+                >
+                  <td>
+                    <p>{{ currentConcursoAdj.nombre_apellido }}</p>
+                  </td>
+                  <td>
+                    <p>$ {{ currentConcursoAdj.importe }}</p>
+                  </td>
+                </tr>
+              </tbody>
             </table>
 
             <a
-              href="http://localhost:3333/api/v1/download/1-2021.zip"
+              v-bind:href="
+                'http://localhost:3333/api/v1/download/' +
+                  currentConcurso.id +
+                  '-' +
+                  currentConcurso.numero +
+                  '-' +
+                  currentConcurso.llamada +
+                  '-' +
+                  currentConcurso.anio +
+                  '.zip'
+              "
               class="button is-info is-outlined"
               target="_blank"
             >
@@ -98,7 +107,7 @@
               /></span>
               <strong>Bases y Condiciones</strong>
             </a>
-            <a class="button is-info  is-outlined">
+            <a class="button  is-outlined">
               <span class="icon"
                 ><font-awesome-icon :icon="['fas', 'download']"
               /></span>
@@ -108,7 +117,7 @@
               v-if="currentConcurso.estado === 'vigente'"
               class="button is-outlined is-link "
               id="show-modal"
-              @click="showModal_post = true"
+              @click="update"
             >
               <span class="icon"
                 ><font-awesome-icon :icon="['fas', 'paperclip']"
@@ -125,43 +134,155 @@
         </div>
       </div>
     </div>
+    <Postulacion
+      v-bind:current="currentConcurso"
+      v-bind:showModal_post="showModal_post"
+      @update-modal="update"
+      v-bind:tipo="tipo"
+    />
 
-    <div class="modal is-clipped" :class="{ 'is-active': showModal_post }">
-      <div class="modal-background" @click="showModal_post = false"></div>
+    <!-- <div
+        class="modal-background"
+        @click="(showModal_post = false), (submitted = false)"
+      ></div>
       <div class="modal-content">
         <div class="card">
           <header class="card-header">
-            <p class="card-header-title">
-              <strong> Se está postulando al</strong>
-            </p>
-            <span class="tag is-black is-medium"
-              >Concurso Nº: {{ currentConcurso.concurso_n }} /
-              {{ currentConcurso.anio }}
-            </span>
+            <div class="card-header-title">
+              <strong> Se está postulando al </strong>
+              <span class="tag is-black is-medium"
+                >Concurso Nº: {{ currentConcurso.numero }} /
+                {{ currentConcurso.anio }}
+              </span>
+            </div>
           </header>
           <div class="content">
-            <upload-files></upload-files>
+            <div>
+              <div class="submit-form">
+                <div v-if="!submitted">
+                  <div class="field">
+                    <label class="label" for="name">Apellido y Nombre</label>
+                    <div class="control">
+                      <input
+                        placeholder="Apellido y Nombre"
+                        class="input"
+                        id="name"
+                        required
+                        v-model="postulante.nombre_apellido"
+                        name="name"
+                        type="text"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="field">
+                    <label class="label" for="email">Email</label>
+
+                    <div class="control">
+                      <input
+                        placeholder="Ingrese su email"
+                        class="input"
+                        id="email"
+                        required
+                        v-model="postulante.email"
+                        name="email"
+                        type="email"
+                      />
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label class="label" for="number">CUIT</label>
+                    <div class="control">
+                      <input
+                        class="input"
+                        type="number"
+                        placeholder="CUIT"
+                        id="cuit"
+                        required
+                        v-model="postulante.cuit"
+                        name="cuit"
+                      />
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label class="label" for="tel">Celular</label>
+                    <div class="control">
+                      <input
+                        class="input"
+                        type="tel"
+                        placeholder="Celular"
+                        id="tel"
+                        required
+                        v-model="postulante.phone"
+                        name="phone"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="field">
+                    <label class="label" for="pliego">Pliego</label>
+                    <div v-if="currentFile" class="progress">
+                      <progress
+                        class="progress"
+                        v-bind:value="progress"
+                        max="100"
+                        >{{ progress }}%</progress
+                      >
+                    </div>
+
+                    <label class="button">
+                      <input type="file" ref="file" @change="selectFile" />
+                    </label>
+                    <button
+                      class="button"
+                      :disabled="!selectedFiles"
+                      @click="upload(currentConcurso.id)"
+                    >
+                      Postularse
+                    </button>
+                  </div>
+
+                  <article v v-if="message != ''" class="message is-danger">
+                    <div class="message-body" role="alert">
+                      {{ message }}
+                    </div>
+                  </article>
+
+                 
+                </div>
+                <div class="notification is-success" v-else>
+                  <p>¡Te has postulado satisfactoriamente!</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-      <button class="modal-close is-large" aria-label="close"></button>
-    </div>
+      </div> -->
   </v-card>
 </template>
 
 <script>
-import UploadFiles from "~/components/UploadFiles";
+import UploadService from "~/services/UploadFilesService";
+import Postulacion from "~/components/postulacion";
+
 export default {
   data() {
     return {
       concursos: [],
       estado: "vigente",
-      activeTab: 0,
       condition: true,
-      modal: false,
+      tipo: "concurso",
       currentConcurso: [],
       currentConcursosAdj: [],
-       postulante: {
+      modal: true,
+      files: [],
+      isActive: true,
+      showModal_post: false,
+      selectedFiles: undefined,
+      currentFile: undefined,
+      progress: 0,
+      message: "",
+      /* postulante: {
         id: null,
         tipo: "concurso",
         phone: "",
@@ -169,20 +290,61 @@ export default {
         email: "",
         cuit: "",
         inscripcion_id: null
-      },
-      files: [],
-      isActive: true,
-      showModal_post: false
+      }, */
+      submitted: false,
+      fileInfos: []
     };
   },
   components: {
-    UploadFiles
+    Postulacion,
+    UploadService
   },
   created() {
     this.fetch_estado("vigente");
     this.get_files();
   },
   methods: {
+    selectFile() {
+      this.selectedFiles = this.$refs.file.files;
+    },
+    update(showModal_post) {
+      this.showModal_post = showModal_post;
+    },
+
+    upload(id) {
+      this.progress = 0;
+      this.currentFile = this.selectedFiles.item(0);
+      (this.postulante.inscripcion_id = id),
+        UploadService.upload(
+          this.postulante.inscripcion_id,
+          this.postulante.tipo,
+          this.currentFile,
+          this.postulante.phone,
+          this.postulante.cuit,
+          this.postulante.email,
+          this.postulante.nombre_apellido,
+          event => {
+            this.progress = Math.round((100 * event.loaded) / event.total);
+          }
+        )
+          .then(response => {
+            this.message = response.data.message;
+            return UploadService.getFiles();
+          })
+          .then(files => {
+            this.fileInfos = files.data;
+          })
+          .catch(() => {
+            this.progress = 0;
+            this.message = "Could not upload the file!";
+            this.currentFile = undefined;
+          });
+
+      this.selectedFiles = undefined;
+      this.submitted = true;
+      this.postulante = {};
+    },
+
     async fetch() {
       const params = {
         estado: "vigente"
@@ -193,11 +355,12 @@ export default {
       this.concursos = ip;
     },
     async fetch_estado(estado) {
-      let result = await this.$axios.$get(
-        `http://localhost:3333/api/v1/concursos/${estado}`
-      );
+      let result = await this.$axios
+        .$get(`http://localhost:3333/api/v1/concursos/${estado}`)
+        .catch(err => {
+          console.log(err);
+        });
       this.concursos = result;
-
       this.modal = true;
     },
     showModal(id) {
@@ -243,7 +406,7 @@ p {
   margin: 5px;
   z-index: 1000;
   transition: color 0.3s ease-out;
-  /* text-transform: capitalize; */
+  text-transform: capitalize;
 }
 .span {
   margin-top: 5px;

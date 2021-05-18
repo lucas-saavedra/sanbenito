@@ -1,155 +1,164 @@
 <template>
-  <v-card flat>
-    <div>
-      <div class="select is-primary is-normal">
-        <select v-model="estado" v-on:change="fetch_estado(estado)">
-          <option value="vigente" autofocus>Vigente</option>
-          <option value="en_evaluacion">En evaluación</option>
-          <option value="adjudicada">Adjudicada</option>
-        </select>
-      </div>
-      <table class="table is-bordered is-centered" v-if="modal">
-        <thead>
-          <tr>
-            <th><p>Nº Licitacion</p></th>
-            <th><p>Tipo</p></th>
-            <th><p>Titulo</p></th>
-            <th>Ver</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="licitacion in licitaciones" :key="licitacion.id">
-            <td>
-              <span class="tag is-primary is-medium"
-                >{{ licitacion.licitacion_n }} / {{ licitacion.anio }}</span
+  <v-app>
+    <v-card flat>
+      <div>
+        <div class="select is-primary is-normal">
+          <select v-model="estado" v-on:change="fetch_estado(estado)">
+            <option value="vigente" autofocus>Vigente</option>
+            <option value="en_evaluacion">En evaluación</option>
+            <option value="adjudicada">Adjudicada</option>
+          </select>
+        </div>
+        <table class="table is-bordered is-centered" v-if="modal">
+          <thead>
+            <tr>
+              <th><p>Nº Licitacion</p></th>
+              <th><p>Tipo</p></th>
+              <th><p>Titulo</p></th>
+              <th>Ver</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="licitacion in licitaciones" :key="licitacion.id">
+              <td>
+                <span class="tag is-primary is-medium"
+                  >{{ licitacion.numero }} / {{ licitacion.anio }}</span
+                >
+              </td>
+              <td>
+                <p>{{ licitacion.tipo }}</p>
+              </td>
+              <td id="titulo">{{ licitacion.titulo }}</td>
+              <td>
+                <button class="button" @click="fetchOne(licitacion.id)">
+                  <span class="icon"
+                    ><font-awesome-icon :icon="['fas', 'eye']"
+                  /></span>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="card" v-else>
+          <div class="card-content">
+            <div>
+              <span class="tag is-black is-medium"
+                >Licitacion Nº: {{ currentLicitacion.numero }} /
+                {{ currentLicitacion.anio }}
+              </span>
+              <span class="tag is-primary is-medium">
+                Tipo: {{ currentLicitacion.tipo }}</span
               >
-            </td>
-            <td>
-              <p>{{ licitacion.tipo }}</p>
-            </td>
-            <td id="titulo">{{ licitacion.titulo }}</td>
-            <td>
-              <button class="button" @click="fetchOne(licitacion.id)">
+              <span class="tag is-primary is-medium">
+                Estado: {{ currentLicitacion.estado }}</span
+              >
+              <br />
+              <p id="titulo">
+                <strong>Titulo:</strong> {{ currentLicitacion.titulo }}
+              </p>
+              <p><strong>Llamada: </strong> {{ currentLicitacion.llamada }}</p>
+              <p><strong>Decreto:</strong> {{ currentLicitacion.decreto }}</p>
+              <p id="titulo">
+                <strong>Entrega de Sobres:</strong>
+                {{ currentLicitacion.entrega_sobres }}
+              </p>
+              <p id="titulo">
+                <strong>Fecha de apertura: </strong
+                >{{ currentLicitacion.fecha_apertura }}
+              </p>
+              <p>
+                <strong>Presupuesto Oficial: $</strong>
+                {{ currentLicitacion.presup_oficial }}
+              </p>
+
+              <p>
+                <strong>Precio Pliego: $ </strong>
+                {{ currentLicitacion.precio_pliego }}
+              </p>
+
+              <p>
+                <strong>Organismo Financiero: </strong
+                >{{ currentLicitacion.org_financiero }}
+              </p>
+              <p v-if="(currentLicitacion.fecha_adj = null)">
+                <strong>Fecha Adjudicación:</strong
+                >{{ currentLicitacion.fecha_adj }}
+              </p>
+              <p id="titulo">
+                <strong>Bases y Condiciones: </strong
+                >{{ currentLicitacion.bases_condiciones }}
+              </p>
+              <p v-if="(currentLicitacion.norma_adj = null)">
+                <strong>Norma Adjudicación :</strong
+                >{{ currentLicitacion.norma_adj }}
+              </p>
+
+              <a
+                v-bind:href="
+                  'http://localhost:3333/api/v1/download/' +
+                    currentLicitacion.id +
+                    '-' +
+                    currentLicitacion.numero +
+                    '-' +
+                    currentLicitacion.llamada +
+                    '-' +
+                    currentLicitacion.anio +
+                    '.zip'
+                "
+                class="button is-primary is-outlined"
+                target="_blank"
+              >
                 <span class="icon"
-                  ><font-awesome-icon :icon="['fas', 'eye']"
+                  ><font-awesome-icon :icon="['fas', 'download']"
                 /></span>
+                <strong>Bases y Condiciones</strong>
+              </a>
+              <a class="button  is-outlined">
+                <span class="icon"
+                  ><font-awesome-icon :icon="['fas', 'download']"
+                /></span>
+                <strong>Pliego</strong>
+              </a>
+              <a
+                v-if="currentLicitacion.estado === 'vigente'"
+                class="button is-outlined is-link "
+                id="show-modal"
+                @click="showModal_post = true"
+              >
+                <span class="icon"
+                  ><font-awesome-icon :icon="['fas', 'paperclip']"
+                /></span>
+                <strong>Postularse</strong>
+              </a>
+              <button
+                @click="fetch_estado(estado)"
+                class="button is-danger is-outlined is-pulled-right"
+              >
+                Volver
               </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="card" v-show="modal_det">
-        <div class="card-content">
-          <div>
-            <span class="tag is-black is-medium"
-              >Licitacion Nº: {{ currentLicitacion.licitacion_n }} /
-              {{ currentLicitacion.anio }}
-            </span>
-            <span class="tag is-primary is-medium">
-              Tipo: {{ currentLicitacion.tipo }}</span
-            >
-            <span class="tag is-primary is-medium">
-              Estado: {{ currentLicitacion.estado }}</span
-            >
-            <br />
-            <p id="titulo">
-              <strong>Titulo:</strong> {{ currentLicitacion.titulo }}
-            </p>
-            <p><strong>Llamada: </strong> {{ currentLicitacion.llamada }}</p>
-            <p><strong>Decreto:</strong> {{ currentLicitacion.decreto }}</p>
-            <p id="titulo">
-              <strong>Entrega de Sobres:</strong>
-              {{ currentLicitacion.entrega_sobres }}
-            </p>
-            <p>
-              <strong>Fecha de apertura: </strong
-              >{{ currentLicitacion.fecha_apertura }}
-            </p>
-            <p>
-              <strong>Presupuesto Oficial: $</strong>
-              {{ currentLicitacion.presup_oficial }}
-            </p>
-
-            <p><strong>Precio Pliego: $ </strong></p>
-            {{ currentLicitacion.precio_pliego }}
-
-            <p>
-              <strong>Organismo Financiero: </strong
-              >{{ currentLicitacion.org_financiero }}
-            </p>
-            <p v-if="(currentLicitacion.fecha_adj = null)">
-              <strong>Fecha Adjudicación:</strong
-              >{{ currentLicitacion.fecha_adj }}
-            </p>
-            <p>
-              <strong>Bases y Condiciones: </strong
-              >{{ currentLicitacion.bases_condiciones }}
-            </p>
-            <p v-if="(currentLicitacion.norma_adj = null)">
-              <strong>Norma Adjudicación :</strong
-              >{{ currentLicitacion.norma_adj }}
-            </p>
-
-            <a
-              v-bind:href="
-                'http://localhost:3333/api/v1/download/' +
-                  currentLicitacion.id +
-                  '-' +
-                  currentLicitacion.licitacion_n +
-                  '-' +
-                  currentLicitacion.llamada +
-                  '-' +
-                  currentLicitacion.anio +
-                  '.zip'
-              "
-              class="button is-primary is-outlined"
-              target="_blank"
-            >
-              <span class="icon"
-                ><font-awesome-icon :icon="['fas', 'download']"
-              /></span>
-              <strong>Bases y Condiciones</strong>
-            </a>
-            <a class="button  is-outlined">
-              <span class="icon"
-                ><font-awesome-icon :icon="['fas', 'download']"
-              /></span>
-              <strong>Pliego</strong>
-            </a>
-            <a
-              v-if="currentLicitacion.estado === 'vigente'"
-              class="button is-outlined is-link "
-              id="show-modal"
-              @click="showModal_post = true"
-            >
-              <span class="icon"
-                ><font-awesome-icon :icon="['fas', 'paperclip']"
-              /></span>
-              <strong>Postularse</strong>
-            </a>
-            <button
-              @click="fetch_estado(estado), modal_det = false;"
-              class="button is-danger is-outlined is-pulled-right"
-            >
-              Volver
-            </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-
-    <div class="modal is-clipped" :class="{ 'is-active': showModal_post }">
+      <Postulacion
+        v-bind:current="currentLicitacion"
+        v-bind:showModal_post="showModal_post"
+        @update-modal="update"
+        v-bind:tipo="tipo"
+      />
+      <!--  <div class="modal is-clipped" :class="{ 'is-active': showModal_post }">
       <div class="modal-background" @click="showModal_post = false, submitted = false"></div>
       <div class="modal-content">
         <div class="card">
           <header class="card-header">
-            <p class="card-header-title">
-              <strong> Se está postulando a la</strong>
-            </p>
+            <div class="card-header-title">
+              <strong> Se está postulando a la </strong>
+           
             <span class="tag is-black is-medium"
-              >Licitacion Nº: {{ currentLicitacion.licitacion_n }} /
+              >Licitacion Nº: {{ currentLicitacion.numero }} /
               {{ currentLicitacion.anio }}
-            </span>
+              </span>
+            </div>
           </header>
           <div class="content">
             <div>
@@ -245,7 +254,7 @@
                     </div>
                   </article>
                   
-                  <!-- <button @click="saveTutorial" class="btn btn-success">Submit</button>-->
+                 
                 </div>
                 <div class="notification is-success" v-else>
                   <p>¡Te has postulado satisfactoriamente!</p>
@@ -255,9 +264,26 @@
           </div>
         </div>
       </div>
-      <button class="modal-close is-large" aria-label="close"></button>
-    </div>
-  </v-card>
+      
+    </div> -->
+
+      <div class="text-center">
+        <v-btn dark color="orange darken-2" @click="snackbar = true">
+          Open Snackbar
+        </v-btn>
+
+        <v-snackbar v-model="snackbar" :timeout="timeout">
+          {{ text }}
+
+          <template v-slot:action="{ attrs }">
+            <v-btn color="blue" text v-bind="attrs" @click="snackbar = false">
+              Close
+            </v-btn>
+          </template>
+        </v-snackbar>
+      </div></v-card
+    >
+  </v-app>
 </template>
 
 <script>
@@ -269,9 +295,7 @@ export default {
       licitaciones: [],
       estado: "vigente",
       activeTab: 0,
-      condition: true,
-      modal: false,
-      modal_post: false,
+      modal: true,
       modal_det: false,
       currentLicitacion: [],
       files: [],
@@ -280,6 +304,7 @@ export default {
       selectedFiles: undefined,
       currentFile: undefined,
       progress: 0,
+      tipo: "licitacion",
       message: "",
       postulante: {
         id: null,
@@ -291,7 +316,10 @@ export default {
         inscripcion_id: null
       },
       submitted: false,
-      fileInfos: []
+      fileInfos: [],
+      multiLine: true,
+      snackbar: false,
+      text: `I'm a multi-line snackbar.`
     };
   },
   components: {
@@ -299,30 +327,11 @@ export default {
   },
   created() {
     this.fetch_estado("vigente");
-    this.get_files();
   },
   methods: {
-    /* saveTutorial() {
-      var data = {
-        title: this.tutorial.title,
-        description: this.tutorial.description
-      }; */
-
-    /*   TutorialDataService.create(data)
-        .then(response => {
-          this.tutorial.id = response.data.id;
-          console.log(response.data);
-          this.submitted = true;
-        })
-        .catch(e => {
-          console.log(e);
-        }); */
-    /* }, */
-
-    /* newTutorial() {
-      this.submitted = false;
-      this.tutorial = {};
-    }, */
+    update(showModal_post) {
+      this.showModal_post = showModal_post;
+    },
 
     selectFile() {
       this.selectedFiles = this.$refs.file.files;
@@ -340,7 +349,6 @@ export default {
           this.postulante.cuit,
           this.postulante.email,
           this.postulante.nombre_apellido,
-
           event => {
             this.progress = Math.round((100 * event.loaded) / event.total);
           }
@@ -373,23 +381,33 @@ export default {
       this.licitaciones = ip;
     },
     async fetch_estado(estado) {
-      let result = await this.$axios.$get(
-        `http://localhost:3333/api/v1/licitaciones/${estado}`
-      );
-      this.licitaciones = result;
-      this.modal = true;
-      this.modal_det = false;
+      try {
+        let result = await this.$axios.$get(
+          `http://localhost:3333/api/v1/licitaciones/${estado}`
+        );
+        this.licitaciones = result;
+        this.modal = true;
+        this.modal_det = false;
+      } catch (error) {
+        (this.snackbar = true), (this.text = "Error en el servidor");
+      }
     },
     showModal(id) {
       this.fetchOne(id);
     },
+
     async fetchOne(id) {
-      let result = await this.$axios.$get(
-        `http://localhost:3333/api/v1/licitaciones/id/${id}`
-      );
-      this.currentLicitacion = result;
-      this.modal_det = true;
-      console.log(this.currentLicitacion, "L");
+      try {
+        let result = await this.$axios.$get(
+          `http://localhost:3333/api/v1/licitaciones/id/${id}`
+        );
+        this.currentLicitacion = result;
+        this.modal = false;
+        console.log(this.currentLicitacion, "L");
+      } catch (error) {
+        // what now?
+        console.log(error);
+      }
     },
     showModal(id) {
       this.fetchOne(id);
@@ -424,7 +442,7 @@ p {
   margin: 5px;
   z-index: 1000;
   transition: color 0.3s ease-out;
-  /* text-transform: capitalize; */
+  text-transform: capitalize;
 }
 .span {
   margin-top: 5px;
